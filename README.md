@@ -62,7 +62,7 @@ Setiap push ke `main` & setiap PR menjalankan workflow **Build** (`.github/workf
 1. install dependency,
 2. `compileall` (syntax check),
 3. `pytest` (smoke test `/health`, `/`, `/assets`, `/manifest.webmanifest`, `/sw.js`),
-4. build Android **APK** (artifact `ai-chat-android-apk`, file `app-release.apk`).
+4. build Android **APK** (artifact `ai-chat-android-apk`, file `app-debug.apk`, signed dengan debug key).
 
 Docker (`Dockerfile`) tetap tersedia untuk build lokal/manual, tapi tidak bagian CI.
 APK Android adalah **WebView shell** yang membuka backend Flask (default `http://10.0.2.2:5000`;
