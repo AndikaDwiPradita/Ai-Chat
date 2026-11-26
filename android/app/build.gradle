@@ -18,6 +18,14 @@ android {
         ndk {
             abiFilters "arm64-v8a", "x86_64"
         }
+
+        // Token default saat build (disuntik -PorcaKey / GitHub secret; TIDAK disimpan di source).
+        def orcaKey = (project.findProperty("orcaKey") ?: "").toString().replace("\\", "\\\\").replace("\"", "\\\"")
+        buildConfigField "String", "DEFAULT_ORCA_KEY", "\"${orcaKey}\""
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     buildTypes {

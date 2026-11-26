@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -18,6 +19,9 @@ import com.chaquo.python.android.AndroidPlatform;
  * Standalone Android app: Chaquopy menjalankan backend Flask di dalam APK
  * (127.0.0.1:PORT), WebView membuka aplikasi web lokal. Tidak perlu server
  * terpisah; fitur AI tetap butuh ORCAROUTER_API_KEY + internet.
+ *
+ * Token bisa diisi manual, atau disuntik saat build (BuildConfig.DEFAULT_ORCA_KEY
+ * dari -PorcaKey / GitHub secret) tanpa disimpan di source repo.
  */
 public class MainActivity extends Activity {
 
@@ -43,9 +47,11 @@ public class MainActivity extends Activity {
         final EditText keyInput = new EditText(this);
         keyInput.setHint("ORCAROUTER_API_KEY");
         keyInput.setSingleLine(true);
-        keyInput.setText(prefs.getString("api_key", ""));
+        // isi: yang tersimpan; kalau kosong, token default saat build (kalau ada)
+        String saved = prefs.getString("api_key", null);
+        keyInput.setText(saved != null ? saved : BuildConfig.DEFAULT_ORCA_KEY);
 
-        Button startButton = new Button(this);
+        final Button startButton = new Button(this);
         startButton.setText("Buka Ai-Chat");
 
         webView = new WebView(this);
@@ -65,10 +71,21 @@ public class MainActivity extends Activity {
 
         startButton.setOnClickListener(v -> {
             String apiKey = keyInput.getText().toString().trim();
+            if (apiKey.isEmpty()) {
+                apiKey = BuildConfig.DEFAULT_ORCA_KEY;
+            }
             prefs.edit().putString("api_key", apiKey).apply();
+
+            // BUG FIX: setelah mulai, sembunyikan kolom token + tombol; tinggal chat.
+            keyInput.setVisibility(View.GONE);
+            startButton.setVisibility(View.GONE);
+
             startServerOnce(apiKey);
-            // Beri waktu server lokal menyala sebelum memuat.
-            webView.postDelayed(() -> webView.loadUrl("http://127.0.0.1:" + PORT + "/"), 1200);
+
+            final String url = "http://127.0.0.1:" + PORT + "/";
+            // Beri waktu server lokal menyala; muat ulang sekali lagi setelahnya.
+            webView.postDelayed(() -> webView.loadUrl(url), 1200);
+            webView.postDelayed(webView::reload, 2600);
         });
     }
 
