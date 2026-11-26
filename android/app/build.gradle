@@ -41,10 +41,8 @@ chaquopy {
     }
     sourceSets {
         main {
-            python.srcDirs = [
-                "src/main/python",
-                "${rootDir}/../backend"
-            ]
+            srcDir "src/main/python"
+            srcDir "${rootDir}/../backend"
         }
     }
 }
