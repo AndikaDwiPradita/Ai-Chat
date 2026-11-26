@@ -1,5 +1,6 @@
 plugins {
     id "com.android.application"
+    id "com.chaquo.python"
 }
 
 android {
@@ -12,11 +13,6 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
-
-        // URL backend Flask. Default untuk emulator Android (10.0.2.2 = localhost host).
-        // Ubah saat build: -PserverUrl=http://IP-ANDA:5000
-        def serverUrl = project.findProperty("serverUrl") ?: "http://10.0.2.2:5000"
-        buildConfigField "String", "SERVER_URL", "\"${serverUrl}\""
     }
 
     buildTypes {
@@ -25,12 +21,30 @@ android {
         }
     }
 
-    buildFeatures {
-        buildConfig true
-    }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// ---- Chaquopy: embed CPython + Flask backend di dalam APK (standalone) ----
+chaquopy {
+    defaultConfig {
+        version = "3.12"
+        pip {
+            install "Flask>=3.0"
+            install "requests>=2.31"
+            install "pypdf>=7.1.0"
+            install "python-dotenv>=1.0"
+            // MCP sengaja tidak dipasang di Android; app berjalan tanpa MCP.
+        }
+    }
+    sourceSets {
+        main {
+            python.srcDirs = [
+                "src/main/python",
+                "${rootDir}/../backend"
+            ]
+        }
     }
 }
