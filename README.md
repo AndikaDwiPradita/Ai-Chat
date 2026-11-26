@@ -50,7 +50,7 @@ Semua konfigurasi lewat `.env` (lihat `.env.example`) atau environment variable:
 ```
 backend/    Flask app (app.py), config, storage SQLite, MCP, plugins, skills, media
 frontend/   index.html, app.js, style.css, PWA manifest, service worker
-android/    Android WebView app (Gradle) → APK
+android/    Android standalone app (Chaquopy, Gradle) → APK
 tests/      Smoke test (pytest)
 .github/workflows/build.yml   CI: build & test di GitHub Actions
 ```
@@ -62,10 +62,11 @@ Setiap push ke `main` & setiap PR menjalankan workflow **Build** (`.github/workf
 1. install dependency,
 2. `compileall` (syntax check),
 3. `pytest` (smoke test `/health`, `/`, `/assets`, `/manifest.webmanifest`, `/sw.js`),
-4. build Android **APK** (artifact `ai-chat-android-apk`, file `app-debug.apk`, signed dengan debug key).
+4. build Android **APK standalone** (artifact `ai-chat-android-apk`, file `app-debug.apk`, signed dengan debug key).
 
 Docker (`Dockerfile`) tetap tersedia untuk build lokal/manual, tapi tidak bagian CI.
-APK Android adalah **WebView shell** yang membuka backend Flask (default `http://10.0.2.2:5000`;
-ubah dengan `-PserverUrl=http://IP-ANDA:5000`); fitur AI tetap butuh backend yang bisa diakses.
+APK Android **standalone** memakai **Chaquopy**: backend Flask + frontend ikut di dalam APK,
+jalan di `127.0.0.1` di dalam app, **tidak perlu server Flask terpisah**. Isi `ORCAROUTER_API_KEY`
+di kolom app; fitur AI tetap butuh internet + API key OrcaRouter. ABI: `arm64-v8a`, `x86_64`.
 
 Rahasia `ORCAROUTER_API_KEY` **tidak diperlukan** untuk build; hanya diperlukan saat menjalankan aplikasi.
