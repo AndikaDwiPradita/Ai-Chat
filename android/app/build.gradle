@@ -1,0 +1,36 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "com.example.aichat"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.aichat"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        // URL backend Flask. Default untuk emulator Android (10.0.2.2 = localhost host).
+        // Ubah saat build: -PserverUrl=http://IP-ANDA:5000
+        def serverUrl = project.findProperty("serverUrl") ?: "http://10.0.2.2:5000"
+        buildConfigField "String", "SERVER_URL", "\"${serverUrl}\""
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
