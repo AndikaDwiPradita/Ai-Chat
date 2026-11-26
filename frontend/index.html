@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10131d" id="themeColorMeta">
+  <title>Cosmic — Multi AI Chatbot</title>
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem("nexus_ai_theme") === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      } catch (e) { }
+    })();
+  </script>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i data-lucide="brain-circuit"></i></div>
+      <div>
+        <h2>Cosmic</h2>
+        <span>Multi-model intelligence</span>
+      </div>
+      <button class="icon-btn close-sidebar" id="closeSidebar">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <button class="new-chat" id="newChat">
+      <i data-lucide="plus"></i>
+      <span>Percakapan Baru</span>
+    </button>
+
+    <div class="history-search">
+      <i data-lucide="search"></i>
+      <input
+        type="search"
+        id="historySearch"
+        placeholder="Cari percakapan..."
+        autocomplete="off"
+      >
+    </div>
+
+    <div class="folder-section">
+      <div class="folder-section-heading">
+        <span>FOLDER</span>
+        <button type="button" id="createFolderButton" title="Buat folder">
+          <i data-lucide="plus"></i>
+        </button>
+      </div>
+      <div id="folderList" class="folder-list"></div>
+    </div>
+
+    <div class="history-heading">RIWAYAT PERCAKAPAN</div>
+    <div class="history-list" id="historyList"></div>
+
+    <section class="archive-section" id="archiveSection" hidden>
+      <div class="archive-heading">
+        <i data-lucide="archive"></i>
+        <span>ARSIP PERCAKAPAN</span>
+      </div>
+      <div class="archive-list" id="archiveList"></div>
+    </section>
+
+    <details class="backup-panel">
+      <summary class="backup-title">PENGELOLAAN DATA</summary>
+
+      <button type="button" class="backup-button" id="exportAllChats">
+        <i data-lucide="download"></i>
+        <span>Backup Semua Chat</span>
+      </button>
+
+      <button type="button" class="backup-button" id="importAllChats">
+        <i data-lucide="upload"></i>
+        <span>Import Backup</span>
+      </button>
+
+      <input
+        type="file"
+        id="backupFileInput"
+        accept=".json,application/json"
+        hidden
+      >
+
+      <button type="button" class="backup-button danger" id="clearAllChats">
+        <i data-lucide="trash-2"></i>
+        <span>Hapus Semua Chat</span>
+      </button>
+    </details>
+
+    <div class="sidebar-bottom">
+      <div class="profile">
+        <div class="avatar">N</div>
+        <div>
+          <strong>My Workspace</strong>
+          <span>Personal edition</span>
+        </div>
+        <button type="button" class="icon-btn" id="themeToggleButton" title="Ganti Tema" aria-label="Ganti tema">
+          <i data-lucide="moon"></i>
+        </button>
+        <button type="button" class="icon-btn profile-settings" id="settingsButton" title="Pengaturan AI">
+          <i data-lucide="settings"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="chat-search" id="chatSearchPanel" aria-hidden="true">
+      <i data-lucide="search"></i>
+      <input id="chatSearchInput" type="search" placeholder="Cari dalam percakapan..." autocomplete="off">
+      <span class="chat-search-count" id="chatSearchCount">0/0</span>
+      <button type="button" id="chatSearchPrev" title="Sebelumnya" aria-label="Hasil sebelumnya"><i data-lucide="chevron-up"></i></button>
+      <button type="button" id="chatSearchNext" title="Berikutnya" aria-label="Hasil berikutnya"><i data-lucide="chevron-down"></i></button>
+      <button type="button" id="chatSearchClose" title="Tutup" aria-label="Tutup pencarian"><i data-lucide="x"></i></button>
+    </div>
+
+    <header class="topbar">
+      <div class="top-left">
+        <button class="icon-btn" id="openSidebar">
+          <i data-lucide="panel-left"></i>
+        </button>
+        <div class="mobile-brand">Cosmic</div>
+      </div>
+
+      <div class="model-selector">
+        <i data-lucide="sparkles"></i>
+        <select id="modelSelect">
+          <option value="">Memuat model...</option>
+        </select>
+        <i data-lucide="chevron-down"></i>
+      </div>
+
+      <div class="top-actions">
+        <button type="button" class="icon-btn top-inline" id="chatSearchButton" title="Cari dalam percakapan (Ctrl+F)" aria-label="Cari dalam percakapan">
+          <i data-lucide="search"></i>
+        </button>
+
+        <button type="button" class="icon-btn top-inline performance-open" id="performanceButton" title="Performa Model AI" aria-label="Performa Model AI">
+          <i data-lucide="activity"></i>
+        </button>
+
+        <button type="button" class="icon-btn top-inline model-manager-open" id="modelManagerButton" title="Kelola Model AI" aria-label="Kelola Model AI">
+          <i data-lucide="sliders-horizontal"></i>
+        </button>
+
+        <button type="button" class="icon-btn top-inline" id="compareButton" title="Bandingkan Model" aria-label="Bandingkan Model">
+          <i data-lucide="layers"></i>
+        </button>
+
+        <button type="button" class="icon-btn top-inline" id="toolsButton" title="Plugin, Skill, MCP & Terminal" aria-label="Tools">
+          <i data-lucide="wrench"></i>
+        </button>
+
+        <button type="button" class="icon-btn top-inline" id="shortcutsButton" title="Pintasan Keyboard" aria-label="Pintasan Keyboard">
+          <i data-lucide="keyboard"></i>
+        </button>
+
+        <button type="button" class="icon-btn top-inline copy-conversation" id="copyConversationButton" title="Copy Percakapan" aria-label="Copy Percakapan">
+          <i data-lucide="copy"></i>
+        </button>
+
+        <div class="export-menu-wrap top-inline" id="exportMenuWrap">
+          <button type="button" class="icon-btn" id="exportMenuButton" title="Export Percakapan" aria-label="Export Percakapan">
+            <i data-lucide="download"></i>
+          </button>
+          <div class="export-dropdown" id="exportDropdown" aria-hidden="true">
+            <button type="button" data-format="md">Markdown (.md)</button>
+            <button type="button" data-format="txt">Plain Text (.txt)</button>
+            <button type="button" data-format="html">HTML (.html)</button>
+            <button type="button" data-format="json">JSON (.json)</button>
+          </div>
+        </div>
+
+        <div class="more-menu-wrap" id="moreMenuWrap">
+          <button type="button" class="icon-btn" id="moreMenuButton" title="Menu Lainnya" aria-label="Menu lainnya" aria-haspopup="true" aria-expanded="false">
+            <i data-lucide="more-vertical"></i>
+          </button>
+          <div class="more-menu-dropdown" id="moreMenuDropdown" aria-hidden="true">
+            <button type="button" data-action="chatSearch"><i data-lucide="search"></i><span>Cari dalam percakapan</span></button>
+            <button type="button" data-action="performance"><i data-lucide="activity"></i><span>Performa Model</span></button>
+            <button type="button" data-action="modelManager"><i data-lucide="sliders-horizontal"></i><span>Kelola Model</span></button>
+            <button type="button" data-action="compare"><i data-lucide="layers"></i><span>Bandingkan Model</span></button>
+            <button type="button" data-action="shortcuts"><i data-lucide="keyboard"></i><span>Pintasan Keyboard</span></button>
+            <button type="button" data-action="copy"><i data-lucide="copy"></i><span>Copy Percakapan</span></button>
+            <button type="button" data-action="export"><i data-lucide="download"></i><span>Export Markdown</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="connection">
+        <span class="status-dot"></span>
+        <span id="connectionStatus">Menghubungkan</span>
+      </div>
+    </header>
+
+    <section class="chat-area" id="chatArea">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">
+          <i data-lucide="brain-circuit"></i>
+        </div>
+
+        <div class="welcome-label">YOUR AI WORKSPACE</div>
+        <h1>Selamat datang di <span>Cosmic.</span></h1>
+        <p>Satu ruang untuk menjelajahi berbagai kecerdasan buatan.</p>
+
+        <div class="suggestions">
+          <button class="suggestion" data-prompt="Jelaskan apa itu kecerdasan buatan.">
+            <i data-lucide="brain"></i>
+            <span>
+              <strong>Belajar sesuatu</strong>
+              <small>Jelaskan konsep yang kompleks</small>
+            </span>
+          </button>
+
+          <button class="suggestion" data-prompt="Bantu saya membuat proyek Python sederhana.">
+            <i data-lucide="code"></i>
+            <span>
+              <strong>Menulis kode</strong>
+              <small>Buat dan pelajari program</small>
+            </span>
+          </button>
+
+          <button class="suggestion" data-prompt="Berikan saya ide proyek teknologi yang menarik.">
+            <i data-lucide="lightbulb"></i>
+            <span>
+              <strong>Mencari inspirasi</strong>
+              <small>Temukan ide dan solusi baru</small>
+            </span>
+          </button>
+
+          <button class="suggestion" data-prompt="Bantu saya menganalisis sebuah permasalahan secara mendalam.">
+            <i data-lucide="chart-no-axes-combined"></i>
+            <span>
+              <strong>Menganalisis</strong>
+              <small>Bedah masalah secara mendalam</small>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="messages" id="messages"></div>
+    </section>
+
+    <footer class="composer-wrapper">
+      <form class="composer" id="chatForm">
+        <textarea
+          id="messageInput"
+          placeholder="Tanyakan sesuatu kepada Cosmic..."
+          rows="1"
+        ></textarea>
+
+        <div id="selectedFiles" class="selected-files" aria-live="polite"></div>
+
+        <div class="composer-bottom">
+          <div class="composer-tools">
+            <input id="fileInput" type="file" accept=".pdf,.txt,.js,.jsx,.ts,.tsx,.py,.html,.htm,.css,.json,.xml,.java,.cpp,.c,.cs,.go,.rb,.php,.sh,.sql,.md,.yaml,.yml,.rs,.swift,.kt,.dart,image/*,application/pdf,text/plain" multiple hidden>
+            <button type="button" id="attachFileButton" class="attach-file-button" title="Lampirkan PDF, TXT, atau gambar" aria-label="Lampirkan file">
+              <i data-lucide="paperclip"></i>
+            </button>
+            <button type="button" id="voiceInputButton" class="attach-file-button" title="Dikte suara (voice input)" aria-label="Dikte suara" style="display:none;">
+              <i data-lucide="mic"></i>
+            </button>
+            <button type="button" id="generateImageButton" class="attach-file-button" title="Buat gambar (image generation)" aria-label="Buat gambar">
+              <i data-lucide="image"></i>
+            </button>
+            <button type="button" id="generateVideoButton" class="attach-file-button" title="Buat video (video generation)" aria-label="Buat video">
+              <i data-lucide="film"></i>
+            </button>
+            <span class="file-hint">PDF / TXT / Kode / IMG</span>
+          </div>
+          <span><i data-lucide="shield-check"></i> Connected to OrcaRouter</span>
+          <button type="submit" id="sendButton" class="send-button">
+            <i data-lucide="arrow-up"></i>
+          </button>
+        </div>
+      </form>
+
+      <p class="disclaimer">
+        AI dapat membuat kesalahan. Periksa kembali informasi penting.
+      </p>
+    </footer>
+
+  </main>
+</div>
+
+<div class="mobile-overlay" id="mobileOverlay"></div>
+
+<div class="settings-modal" id="settingsModal" aria-hidden="true">
+  <div class="settings-backdrop" id="settingsBackdrop"></div>
+  <section class="settings-dialog" role="dialog" aria-modal="true">
+    <div class="settings-header">
+      <div>
+        <h2>Pengaturan AI</h2>
+        <p>Atur cara AI menjawab pesanmu.</p>
+      </div>
+      <button class="icon-btn" id="closeSettings" type="button">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="settings-content">
+      <label for="systemPromptInput">System Prompt</label>
+      <p class="settings-description">Atur peran, karakter, dan instruksi AI.</p>
+      <textarea id="systemPromptInput" rows="6" placeholder="Contoh: Kamu adalah asisten yang ramah dan menjelaskan dengan bahasa sederhana."></textarea>
+      <div class="temperature-heading">
+        <label for="temperatureInput">Temperature</label>
+        <strong id="temperatureValue">0.7</strong>
+      </div>
+      <p class="settings-description">Semakin tinggi nilainya, semakin bervariasi jawaban AI.</p>
+      <input id="temperatureInput" type="range" min="0" max="2" step="0.1" value="0.7">
+      <div class="temperature-scale">
+        <span>0 - Konsisten</span>
+        <span>2 - Kreatif</span>
+      </div>
+    </div>
+    <div class="settings-template-section">
+      <label>Template Prompt</label>
+      <p class="settings-description">Simpan prompt yang sering dipakai (misalnya "Mode Terjemah", "Mode Guru") lalu terapkan ke System Prompt.</p>
+
+      <div class="template-row">
+        <select id="promptTemplateSelect">
+          <option value="">-- Pilih template --</option>
+        </select>
+        <button type="button" class="settings-cancel" id="applyTemplateButton">Terapkan</button>
+        <button type="button" class="settings-reset" id="deleteTemplateButton">Hapus</button>
+      </div>
+
+      <input id="promptTemplateName" type="text" placeholder="Nama template baru" maxlength="40">
+      <textarea id="promptTemplateContent" rows="3" placeholder="Isi template prompt..."></textarea>
+      <button type="button" class="settings-save" id="saveTemplateButton">Simpan Template</button>
+    </div>
+
+    <div class="settings-footer">
+      <button type="button" class="settings-reset" id="resetSettings">Reset Default</button>
+      <div class="settings-actions">
+        <button type="button" class="settings-cancel" id="cancelSettings">Batal</button>
+        <button type="button" class="settings-save" id="saveSettings">Simpan</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+
+<div class="model-manager-modal" id="modelManagerModal" aria-hidden="true">
+  <div class="model-manager-backdrop" id="modelManagerBackdrop"></div>
+  <section class="model-manager-dialog" role="dialog" aria-modal="true">
+    <div class="model-manager-header">
+      <div>
+        <h2>Model Manager</h2>
+        <p>Kelola model AI yang tersedia di Cosmic.</p>
+      </div>
+      <button type="button" class="icon-btn" id="closeModelManager">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="model-manager-default">
+      <label for="defaultModelSelect">Model Default untuk Chat Baru</label>
+      <select id="defaultModelSelect"></select>
+    </div>
+
+    <div class="model-manager-summary" id="modelManagerCount">Memuat model...</div>
+    <div class="model-manager-list" id="modelManagerList"></div>
+
+    <div class="model-manager-footer">
+      <button type="button" class="settings-save" id="saveModelManager">Simpan</button>
+    </div>
+  </section>
+</div>
+
+
+
+<div class="performance-modal" id="performanceModal" aria-hidden="true">
+  <div class="performance-backdrop" id="performanceBackdrop"></div>
+  <section class="performance-dialog" role="dialog" aria-modal="true" aria-labelledby="performanceTitle">
+    <div class="performance-header">
+      <div>
+        <h2 id="performanceTitle">Model Performance</h2>
+        <p>Statistik penggunaan dan kecepatan model AI.</p>
+      </div>
+      <button type="button" class="icon-btn" id="closePerformance" aria-label="Tutup">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="performance-summary">
+      <div class="performance-stat"><small>Total Permintaan</small><strong id="performanceTotal">0</strong></div>
+      <div class="performance-stat"><small>Berhasil</small><strong id="performanceSuccess">0</strong></div>
+      <div class="performance-stat"><small>Gagal</small><strong id="performanceFailure">0</strong></div>
+      <div class="performance-stat"><small>Rata-rata Respons</small><strong id="performanceAverage">-</strong></div>
+    </div>
+
+    <h3>Statistik per Model</h3>
+    <div id="performanceModelList" class="performance-list"></div>
+
+    <h3>20 Riwayat Terakhir</h3>
+    <div id="performanceHistory" class="performance-list"></div>
+
+    <div class="performance-footer">
+      <button type="button" class="settings-reset" id="resetPerformance">Reset Statistik</button>
+      <button type="button" class="settings-save" id="closePerformanceBottom">Tutup</button>
+    </div>
+  </section>
+</div>
+
+<div class="compare-modal" id="compareModal" aria-hidden="true">
+  <div class="compare-backdrop" id="compareBackdrop"></div>
+  <section class="compare-dialog" role="dialog" aria-modal="true">
+    <div class="compare-header">
+      <div>
+        <h2>Bandingkan Model</h2>
+        <p>Kirim satu pertanyaan ke beberapa model sekaligus dan bandingkan jawabannya.</p>
+      </div>
+      <button type="button" class="icon-btn" id="closeCompare"><i data-lucide="x"></i></button>
+    </div>
+
+    <label for="comparePrompt">Pertanyaan</label>
+    <textarea id="comparePrompt" rows="3" placeholder="Tuliskan pertanyaan yang ingin dibandingkan..."></textarea>
+
+    <label>Pilih Model (maksimal 4)</label>
+    <div class="compare-model-list" id="compareModelList"></div>
+
+    <div class="compare-actions">
+      <button type="button" class="settings-cancel" id="cancelCompare">Batal</button>
+      <button type="button" class="settings-save" id="runCompare">Bandingkan</button>
+    </div>
+
+    <div class="compare-results" id="compareResults"></div>
+  </section>
+</div>
+
+<div class="shortcuts-modal" id="shortcutsModal" aria-hidden="true">
+  <div class="shortcuts-backdrop" id="shortcutsBackdrop"></div>
+  <section class="shortcuts-dialog" role="dialog" aria-modal="true">
+    <div class="shortcuts-header">
+      <h2>Pintasan Keyboard</h2>
+      <button type="button" class="icon-btn" id="closeShortcuts"><i data-lucide="x"></i></button>
+    </div>
+    <div class="shortcuts-list">
+      <div><kbd>Ctrl</kbd> + <kbd>K</kbd><span>Chat baru</span></div>
+      <div><kbd>Ctrl</kbd> + <kbd>/</kbd><span>Fokus input pesan</span></div>
+      <div><kbd>Ctrl</kbd> + <kbd>F</kbd><span>Cari dalam percakapan</span></div>
+      <div><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd><span>Fokus pencarian riwayat</span></div>
+      <div><kbd>Esc</kbd><span>Tutup modal / pencarian</span></div>
+      <div><kbd>Enter</kbd><span>Kirim pesan</span></div>
+      <div><kbd>Shift</kbd> + <kbd>Enter</kbd><span>Baris baru</span></div>
+    </div>
+  </section>
+</div>
+
+<div class="tools-modal" id="toolsModal" aria-hidden="true">
+  <div class="tools-backdrop" id="toolsBackdrop"></div>
+  <section class="tools-dialog" role="dialog" aria-modal="true">
+    <div class="tools-header">
+      <div>
+        <h2>Tools: Plugin, Skill, MCP & Terminal</h2>
+        <p>Kelola plugin, skill, server MCP, dan jalankan perintah terminal.</p>
+      </div>
+      <button type="button" class="icon-btn" id="closeTools"><i data-lucide="x"></i></button>
+    </div>
+
+    <div class="tools-tabs">
+      <button type="button" class="tools-tab active" data-tab="terminal">Terminal</button>
+      <button type="button" class="tools-tab" data-tab="plugins">Plugins</button>
+      <button type="button" class="tools-tab" data-tab="skills">Skills</button>
+      <button type="button" class="tools-tab" data-tab="mcp">MCP</button>
+    </div>
+
+    <div class="tools-body">
+      <!-- Terminal -->
+      <div class="tools-pane" data-pane="terminal">
+        <div class="terminal-output" id="terminalOutput"></div>
+        <div class="terminal-input-row">
+          <span class="terminal-prompt">$</span>
+          <input type="text" id="terminalInput" placeholder="ketik perintah..." autocomplete="off">
+          <button type="button" class="settings-save" id="terminalRun">Jalankan</button>
+          <button type="button" class="settings-reset" id="terminalClear">Bersihkan</button>
+        </div>
+        <p class="settings-description">Perintah dijalankan di direktori proyek. Timeout 120s.</p>
+      </div>
+
+      <!-- Plugins -->
+      <div class="tools-pane" data-pane="plugins" hidden>
+        <div class="tools-install-row">
+          <input type="text" id="pluginSource" placeholder="URL manifest.json atau path folder lokal">
+          <button type="button" class="settings-save" id="pluginInstall">Pasang</button>
+        </div>
+        <div id="pluginList" class="tools-list"></div>
+      </div>
+
+      <!-- Skills -->
+      <div class="tools-pane" data-pane="skills" hidden>
+        <div class="tools-install-row">
+          <input type="text" id="skillSource" placeholder="URL .md atau path file/folder">
+          <button type="button" class="settings-save" id="skillInstall">Pasang</button>
+        </div>
+        <div id="skillList" class="tools-list"></div>
+        <div id="skillView" class="tools-view" hidden></div>
+      </div>
+
+      <!-- MCP -->
+      <div class="tools-pane" data-pane="mcp" hidden>
+        <div class="tools-install-row">
+          <input type="text" id="mcpId" placeholder="ID server (mis. fs)">
+          <select id="mcpTransport">
+            <option value="stdio">stdio</option>
+            <option value="sse">sse</option>
+          </select>
+        </div>
+        <div class="tools-install-row">
+          <input type="text" id="mcpCommand" placeholder="command (stdio) / url (sse)">
+          <input type="text" id="mcpArgs" placeholder="args (space-separated)">
+          <button type="button" class="settings-save" id="mcpAdd">Tambah</button>
+        </div>
+        <div id="mcpList" class="tools-list"></div>
+        <div id="mcpTools" class="tools-list"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+
+<script src="/assets/app.js"></script>
+</body>
+</html>

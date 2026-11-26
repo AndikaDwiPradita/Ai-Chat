@@ -1,0 +1,5 @@
+# Dependensi opsional: hanya dibutuhkan untuk fitur MCP.
+# Pasang dengan: pip install -r requirements-optional.txt
+# Jika gagal build (mis. Termux/Python 3.14), aplikasi tetap berjalan
+# tanpa MCP dan tab MCP akan menampilkan error yang jelas.
+mcp>=1.0
